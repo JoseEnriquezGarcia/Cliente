@@ -2,6 +2,7 @@ package com.digis01JEnriquezProgramacionNCapas.Controller;
 
 import com.digis01JEnriquezProgramacionNCapas.ML.Colonia;
 import com.digis01JEnriquezProgramacionNCapas.ML.Direccion;
+import com.digis01JEnriquezProgramacionNCapas.ML.Pais;
 import com.digis01JEnriquezProgramacionNCapas.ML.Result;
 import com.digis01JEnriquezProgramacionNCapas.ML.ResultFile;
 import com.digis01JEnriquezProgramacionNCapas.ML.Rol;
@@ -43,51 +44,64 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/usuario")
 public class UsuarioController {
+
     RestTemplate restTemplate = new RestTemplate();
-    ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange("http://localhost:8081/usuario", HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Result<UsuarioDireccion>>() {});
-    ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange("http://localhost:8081/usuario/GetAllRol", HttpMethod.GET, responseEntity, new ParameterizedTypeReference<Result<Rol>>() {});
+
+    ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange("http://localhost:8081/usuario/GetAllRol", HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Result<Rol>>() {
+    });
+    ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange("http://localhost:8081/usuario/GetAllPais", HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Result<Pais>>() {
+    });
+
     @GetMapping
     public String Index(Model model) {
-        Result result = responseEntity.getBody();
-        Result resultRol = responseEntityRol.getBody();
-        
-        Usuario usuarioBusqueda = new Usuario();
-        usuarioBusqueda.Rol = new Rol();
-        
-        model.addAttribute("usuarioBusqueda", usuarioBusqueda);
-        model.addAttribute("listaUsuarios", result.objects);
-        model.addAttribute("listaRol", resultRol.objects);
+        try {
+            ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange("http://localhost:8081/usuario",
+                    HttpMethod.GET,
+                    HttpEntity.EMPTY,
+                    new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
+            });
+            
+            Result result = responseEntity.getBody();
+            Result resultRol = responseEntityRol.getBody();
+
+            Usuario usuarioBusqueda = new Usuario();
+            usuarioBusqueda.Rol = new Rol();
+
+            model.addAttribute("usuarioBusqueda", usuarioBusqueda);
+            model.addAttribute("listaUsuarios", result.objects);
+            model.addAttribute("listaRol", resultRol.objects);
+        } catch (Exception ex) {
+            
+        }
         return "Index";
     }
 
-//    @PostMapping("/GetAllDinamico")
-//    public String BusquedaDinamica(@ModelAttribute Usuario usuario, Model model) {
-//        ResponseEntity<Result> postGetAllDinamico = restTemplate.postForEntity("http://localhost:8081/GetAllDinamico", usuario, Result.class, new ParameterizedTypeReference<Result<UsuarioDireccion>>() {});
-////        Result result = usuarioDAOImplementation.GetAllDinamicoJPA(usuario);
-//        
-//        Result result = postGetAllDinamico.getBody();
-//        Result resultRol = responseEntity.getBody();
-//
-//        Usuario usuarioBusqueda = new Usuario();
-//        usuarioBusqueda.Rol = new Rol();
-//  HttpEntity.EMPTYHttpEntity.EMPTYHttpEntity.EMPTYHttpEntity.EMPTYHttpEntity.EMPTY      
-//        model.addAttribute("listaUsuarios", result.objects);
-//        model.addAttribute("listaRol", resultRol.objects);
-//        model.addAttribute("usuarioBusqueda", usuarioBusqueda);
-//
-//        return "Index";
-//    }
-//
-//        return "Index";
+    @PostMapping("/GetAllDinamico")
+    public String BusquedaDinamica(@ModelAttribute Usuario usuario, Model model) {
+        ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange("http://localhost:8081/usuario/GetAllDinamico", HttpMethod.POST, new HttpEntity<>(usuario), new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
+        });
+
+        Result result = responseEntity.getBody();
+        Result resultRol = responseEntity.getBody();
+
+        Usuario usuarioBusqueda = new Usuario();
+        usuarioBusqueda.Rol = new Rol();
+
+        model.addAttribute("listaUsuarios", result.objects);
+        model.addAttribute("listaRol", resultRol.objects);
+        model.addAttribute("usuarioBusqueda", usuarioBusqueda);
+
+        return "Index";
+    }
+
     @GetMapping("Form/{IdUsuario}")
     public String Form(@PathVariable int IdUsuario, Model model) {
         Result result = new Result();
         Result resultPais = new Result();
-        //result = rolDAOImplementation.GetAll();
-//        result = rolDAOImplementation.GetallJPA();
-        //resultPais = paisDAOImplementation.GetAll();
-//        resultPais = paisDAOImplementation.GetAllJPA();
+
         if (IdUsuario == 0) {
+            result = responseEntityRol.getBody();
+            resultPais = responseEntityPais.getBody();
             UsuarioDireccion usuarioDireccion = new UsuarioDireccion();
             usuarioDireccion.Usuario = new Usuario();
             usuarioDireccion.Usuario.Rol = new Rol();
@@ -99,8 +113,10 @@ public class UsuarioController {
             model.addAttribute("usuarioDireccion", usuarioDireccion);
             return "UsuarioForm";
         } else {
-            //result = usuarioDAOImplementation.GetAllById(IdUsuario);
-//            result = usuarioDAOImplementation.GetByAllIdJPA(IdUsuario);
+//            ResponseEntity<Result<Usuario>> responseEntityUsuario = restTemplate.exchange("http://localhost:8081/usuario/GetById?IdUsuario=" + IdUsuario, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Result<Usuario>>() {});
+            ResponseEntity<Result<Usuario>> responseEnrityGetUsuarioDireccionById = restTemplate.exchange("http://localhost:8081/usuario/GetAllById/{IdUsuario}", HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<Result<Usuario>>() {});
+            
+            result = responseEnrityGetUsuarioDireccionById.getBody();
             model.addAttribute("listaUsuario", result.object);
             return "UsuarioView";
         }

@@ -174,14 +174,6 @@ public class Usuario {
         this.CURP = CURP;
     }
 
-    public Rol getRol() {
-        return Rol;
-    }
-
-    public void setRol(Rol Rol) {
-        this.Rol = Rol;
-    }
-
     public String getImagen() {
         return Imagen;
     }
@@ -196,5 +188,12 @@ public class Usuario {
     
     public void setStatus(Integer Status){
         this.Status = Status;
+    }
+     public Rol getRol() {
+        return Rol;
+    }
+
+    public void setRol(Rol Rol) {
+        this.Rol = Rol;
     }
 }
