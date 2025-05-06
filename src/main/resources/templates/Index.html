@@ -124,10 +124,12 @@
                 let nuevoValor = isChecked ? 1 : 0;
 
                 $.ajax({
-                    type: "GET",
-                    url: "/usuario/UpdateStatus/" + data + "/" + nuevoValor,
+                    type: "PATCH",
+                    url: "http://localhost:8081/usuario/UpdateStatus/" + data + "/" + nuevoValor,
                     success: function () {
                         $(element).val(nuevoValor);
+                        
+                        
                     },
                     error: function () {
                         alert("Error al actualizar");
