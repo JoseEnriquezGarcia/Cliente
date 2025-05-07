@@ -325,7 +325,7 @@
         $("#CodigoPostal").on("blur", function () {
             $.ajax({
                 type: 'GET',
-                url: "http://localhost:8081/usuario/GetColoniaByCp/" + $("#CodigoPostal").val(),
+                url: "http://localhost:8081/colonia/getByCp/" + $("#CodigoPostal").val(),
                 datatype: "json",
                 success: function (result) {
                     $.each(result.objects, function (i, data) {
@@ -350,7 +350,7 @@
             $("#Pais").change(function () {
                 $.ajax({
                     type: 'GET',
-                    url: "http://localhost:8081/usuario/EstadoById/" + $("#Pais").val(),
+                    url: "http://localhost:8081/estado/byIdPais/" + $("#Pais").val(),
                     datatype: "json",
                     success: function (data, textStatus, jqXHR) {
                         $("#Estado").attr("disabled", false);
@@ -374,7 +374,7 @@
             $("#Estado").change(function () {
                 $.ajax({
                     type: 'GET',
-                    url: "http://localhost:8081/usuario/MunicipioById/" + $("#Estado").val(),
+                    url: "http://localhost:8081/municipio/byIdEstado/" + $("#Estado").val(),
                     datatype: "json",
                     success: function (data, textStatus, jqXHR) {
                         $("#Municipio").empty();
@@ -394,7 +394,7 @@
             $("#Municipio").change(function () {
                 $.ajax({
                     type: 'GET',
-                    url: "http://localhost:8081/usuario/GetColoniaById/" + $("#Municipio").val(),
+                    url: "http://localhost:8081/colonia/byIdMunicipio/" + $("#Municipio").val(),
                     datatype: "json",
                     success: function (data, textStatus, jqXHR) {
                         $("#Colonia").empty();

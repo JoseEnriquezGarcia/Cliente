@@ -31,11 +31,16 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -53,19 +58,19 @@ import org.springframework.web.multipart.MultipartFile;
 public class UsuarioController {
 
     private RestTemplate restTemplate = new RestTemplate();
-    private String baseUrl = "http://localhost:8081/usuario";
+    private String baseUrl = "http://localhost:8081/";
 
     @GetMapping
     public String Index(Model model) {
 
         try {
-            ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl,
+            ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario",
                     HttpMethod.GET,
                     HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
             });
             //Obtener lista de Roles
-            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "/GetAllRol",
+            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "rol/getAll",
                     HttpMethod.GET,
                     HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result<Rol>>() {
@@ -93,14 +98,14 @@ public class UsuarioController {
     public String BusquedaDinamica(@ModelAttribute Usuario usuario, Model model) {
         try {
             //Obtener UsuarioDireccion
-            ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "/GetAllDinamico",
+            ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario/getAllDinamico",
                     HttpMethod.POST,
                     new HttpEntity<>(usuario),
                     new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
             });
 
             //Obtener lista de Roles
-            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "/GetAllRol",
+            ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "rol/getAll",
                     HttpMethod.GET,
                     HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result<Rol>>() {
@@ -129,14 +134,14 @@ public class UsuarioController {
         if (IdUsuario == 0) {
             try {
                 //Obtener lista de Roles
-                ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "/GetAllRol",
+                ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "rol/getAll",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Rol>>() {
                 });
 
                 //Obtener lista de Paises
-                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "/GetAllPais",
+                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "pais/getAll",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Pais>>() {
@@ -169,7 +174,7 @@ public class UsuarioController {
                 Map<String, Object> uriVariable = new HashMap<>();
                 uriVariable.put("IdUsuario", IdUsuario);
 
-                ResponseEntity<Result<UsuarioDireccion>> responseEnrityGetUsuarioDireccionById = restTemplate.exchange(baseUrl + "/GetAllById/{IdUsuario}",
+                ResponseEntity<Result<UsuarioDireccion>> responseEnrityGetUsuarioDireccionById = restTemplate.exchange(baseUrl + "usuario/getAllById/{IdUsuario}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
@@ -193,7 +198,7 @@ public class UsuarioController {
     public String FormView(Model model, @RequestParam int IdUsuario, @RequestParam(required = false) Integer IdDireccion) {
         if (IdUsuario > 0 && IdDireccion == 0) {
             try {
-                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "/GetAllPais",
+                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "pais/getAll",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Pais>>() {
@@ -218,9 +223,9 @@ public class UsuarioController {
             }
 
         } else if (IdUsuario > 0 && IdDireccion > 0) {
-
+            //Editar direccion
             try {
-                ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(baseUrl + "/GetByIdDireccion/{IdDireccion}",
+                ResponseEntity<Result<Direccion>> responseEntityDireccion = restTemplate.exchange(baseUrl + "direccion/getById/{IdDireccion}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Direccion>>() {
@@ -229,7 +234,6 @@ public class UsuarioController {
 
                 Result resultDireccion = responseEntityDireccion.getBody();
 
-                //Editar direccion
                 UsuarioDireccion usuarioDireccion = new UsuarioDireccion();
                 usuarioDireccion.Usuario = new Usuario();
                 usuarioDireccion.Usuario.setIdUsuario(IdUsuario);
@@ -238,27 +242,27 @@ public class UsuarioController {
 
                 usuarioDireccion.Direccion = (Direccion) resultDireccion.object;
 
-                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "/GetAllPais",
+                ResponseEntity<Result<Pais>> responseEntityPais = restTemplate.exchange(baseUrl + "pais/getAll",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Pais>>() {
                 });
 
-                ResponseEntity<Result<Estado>> responseEntityEstado = restTemplate.exchange(baseUrl + "/EstadoById/{IdPais}",
+                ResponseEntity<Result<Estado>> responseEntityEstado = restTemplate.exchange(baseUrl + "estado/byIdPais/{IdPais}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Estado>>() {
                 },
                         usuarioDireccion.Direccion.Colonia.Municipio.Estado.Pais.getIdPais());
 
-                ResponseEntity<Result<Municipio>> responseEntityMunicipio = restTemplate.exchange(baseUrl + "/MunicipioById/{IdEstado}",
+                ResponseEntity<Result<Municipio>> responseEntityMunicipio = restTemplate.exchange(baseUrl + "municipio/byIdEstado/{IdEstado}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Municipio>>() {
                 },
                         usuarioDireccion.Direccion.Colonia.Municipio.Estado.getIdEstado());
 
-                ResponseEntity<Result<Colonia>> responseEntityColonia = restTemplate.exchange(baseUrl + "/GetColoniaById/{IdMunicipio}",
+                ResponseEntity<Result<Colonia>> responseEntityColonia = restTemplate.exchange(baseUrl + "colonia/byIdMunicipio/{IdMunicipio}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Colonia>>() {
@@ -283,12 +287,13 @@ public class UsuarioController {
             }
 
         } else {
+            //Edita un usuario
             try {
                 Map<String, Object> uriVariable = new HashMap<>();
                 uriVariable.put("IdUsuario", IdUsuario);
 
                 //Obtiene el usuario por Id
-                ResponseEntity<Result<UsuarioDireccion>> responseEntityUsuario = restTemplate.exchange(baseUrl + "/GetById/{IdUsuario}",
+                ResponseEntity<Result<UsuarioDireccion>> responseEntityUsuario = restTemplate.exchange(baseUrl + "usuario/getById/{IdUsuario}",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
@@ -296,7 +301,7 @@ public class UsuarioController {
                         uriVariable);
 
                 //obtener Lista de Roles
-                ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "/GetAllRol",
+                ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "rol/getAll",
                         HttpMethod.GET,
                         HttpEntity.EMPTY,
                         new ParameterizedTypeReference<Result<Rol>>() {
@@ -327,7 +332,7 @@ public class UsuarioController {
     public String DeleteDireccion(@RequestParam int IdDireccion, Model model) {
 
         try {
-            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "/DeleteDireccion/{IdDireccion}",
+            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "direccion/delete/{IdDireccion}",
                     HttpMethod.DELETE,
                     HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result>() {
@@ -347,7 +352,7 @@ public class UsuarioController {
     @GetMapping("/DeleteUsuario")
     public String DeleteUsuario(@RequestParam int IdUsuario, Model model) {
         try {
-            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "/DeleteUsuario/",
+            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/delete/{IdUsuario}",
                     HttpMethod.DELETE,
                     HttpEntity.EMPTY,
                     new ParameterizedTypeReference<Result>() {
@@ -386,39 +391,46 @@ public class UsuarioController {
         if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() == 0) {
             //Agregar una direccion
 
-            try {
+            ResponseEntity<Result> responseEntityDireccionAdd = restTemplate.exchange(baseUrl + "direccion/add",
+                    HttpMethod.POST,
+                    new HttpEntity<>(usuarioDireccion),
+                    new ParameterizedTypeReference<Result>() {
+            });
 
-                ResponseEntity<Result> responseEntityDireccionAdd = restTemplate.exchange(baseUrl + "/AddDireccion",
-                        HttpMethod.POST,
-                        new HttpEntity<>(usuarioDireccion),
-                        new ParameterizedTypeReference<Result>() {
-                });
-                
-                if (responseEntityDireccionAdd.getStatusCode().value() != 200) {
-                    model.addAttribute("statusCode", responseEntityDireccionAdd.getStatusCode().value());
-                    model.addAttribute("descripcionError", responseEntityDireccionAdd.getBody());
+            if (responseEntityDireccionAdd.getStatusCode().value() != 200) {
+                model.addAttribute("statusCode", responseEntityDireccionAdd.getStatusCode().value());
+                model.addAttribute("descripcionError", responseEntityDireccionAdd.getBody());
+                return "Error";
+            }
+
+        } else {
+            if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() > 0) {
+                //Editar Direccion
+                //direccionDAOImplementation.DireccionUpdate(usuarioDireccion.Direccion);
+//                direccionDAOImplementation.DireccionUpdateJPA(usuarioDireccion.Direccion);
+            } else if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() == -1) {
+                //Editar usuario
+                //usuarioDAOImplementation.UsuarioUpdate(usuarioDireccion.Usuario);
+                try {
+
+                    ResponseEntity<Result> responseEntityUpdateUsuario = restTemplate.exchange(baseUrl + "usuario/update",
+                            HttpMethod.PUT,
+                            new HttpEntity<>(usuarioDireccion.Usuario),
+                            new ParameterizedTypeReference<Result>() {
+                    });
+                    
+                    Result result = responseEntityUpdateUsuario.getBody();
+                } catch (HttpStatusCodeException ex) {
+                    model.addAttribute("statusCode", ex.getStatusCode());
+                    model.addAttribute("descripcionError", ex);
                     return "Error";
                 }
 
-            } catch (HttpStatusCodeException ex) {
-                model.addAttribute("statusCode", ex.getStatusCode());
-                model.addAttribute("descripcionError", ex);
-                return "Error";
-            }
-        } else {
-//            if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() > 0) {
-//                //Editar Direccion
-//                //direccionDAOImplementation.DireccionUpdate(usuarioDireccion.Direccion);
-//                direccionDAOImplementation.DireccionUpdateJPA(usuarioDireccion.Direccion);
-//            } else if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() == -1) {
-//                //Editar usuario
-//                //usuarioDAOImplementation.UsuarioUpdate(usuarioDireccion.Usuario);
-//                usuarioDAOImplementation.UsuarioUpdateJPA(usuarioDireccion.Usuario);
-//            } else {
-//                //Agregar Usuario y Direccion
-//                //usuarioDAOImplementation.Add(usuarioDireccion);
+            } else {
+                //Agregar Usuario y Direccion
+                //usuarioDAOImplementation.Add(usuarioDireccion);
 //                usuarioDAOImplementation.AddJPA(usuarioDireccion);
-//            }
+            }
         }
         return ("redirect:/usuario");
     }
@@ -427,41 +439,41 @@ public class UsuarioController {
     public String CargaMsiva() {
         return "CargaMasiva";
     }
-//
-//    @PostMapping("/CargaMasiva")
-//    public String CargaMasiva(@RequestParam MultipartFile archivo, Model model, HttpSession session) {
-//        try {
-//            if (archivo != null && !archivo.isEmpty()) {
-//                String tipoArchivo = archivo.getOriginalFilename().split("\\.")[1];
-//                String root = System.getProperty("user.dir"); //Obtener direccion del proyecto en el equipo
-//                String path = "src/main/resources/static/archivos";//Path relativo dentro del proyecto
-//                String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmSS"));
-//                String absolutePath = root + "/" + path + "/" + fecha + archivo.getOriginalFilename();
-//                archivo.transferTo(new File(absolutePath));
-//
-//                List<UsuarioDireccion> listaUsuarios = new ArrayList();
-//                if (tipoArchivo.equals("txt")) {
-//                    listaUsuarios = LecturaArchivoTXT(new File(absolutePath));
-//                }else{
-//                    listaUsuarios = LecturaArchivoExcel(new File(absolutePath));
-//                }
-//                List<ResultFile> listaErrores = ValidarArchivo(listaUsuarios);
-//
-//                if (listaErrores.isEmpty()) {
-//                    session.setAttribute("urlFile", absolutePath);
-//                    model.addAttribute("listaErrores", listaErrores);
-//                    model.addAttribute("success", true);
-//                } else {
-//                    model.addAttribute("listaErrores", listaErrores);
-//                }
-//            }
-//        } catch (Exception ex) {
-//            return "redirect:/usuario/CargaMasiva";
-//        }
-//
-//        return "CargaMasiva";
-//    }
-//
+
+    @PostMapping("/CargaMasiva")
+    public String CargaMasiva(@RequestParam(value = "archivo") MultipartFile archivo, Model model, HttpSession session) {
+
+        try {
+            if (archivo != null && !archivo.isEmpty()) {
+                ByteArrayResource byteArrayResource = new ByteArrayResource(archivo.getBytes());
+                MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+                body.add("archivo", byteArrayResource);
+
+                HttpHeaders httpHeaders = new HttpHeaders();
+                httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+                HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity(body, httpHeaders);
+
+                ResponseEntity<ResultFile> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva",
+                        HttpMethod.POST,
+                        httpEntity,
+                        new ParameterizedTypeReference<ResultFile>() {
+                });
+
+                ResultFile resultFile = responseEntity.getBody();
+
+                if (responseEntity.getStatusCode().value() == 200) {
+                    session.setAttribute("urlFile", resultFile.getArchivo());
+                    model.addAttribute("listaErrores", resultFile.listaErrores);
+                    model.addAttribute("success", true);
+                }
+            }
+        } catch (Exception ex) {
+            return "redirect:/usuario/CargaMasiva";
+        }
+        return "CargaMasiva";
+    }
+
 //    @GetMapping("/Procesar")
 //    public String Procesar(HttpSession session) {
 //        String absolutePath = session.getAttribute("urlFile").toString();
@@ -479,158 +491,5 @@ public class UsuarioController {
 //            usuarioDAOImplementation.AddJPA(usuarioDireccion);
 //        }
 //        return "CargaMasiva";
-//    }
-//
-//    public List<UsuarioDireccion> LecturaArchivoTXT(File archivo) {
-//        List<UsuarioDireccion> listaUsuarios = new ArrayList<>();
-//
-//        try (FileReader fileReader = new FileReader(archivo); BufferedReader bufferedReader = new BufferedReader(fileReader);) {
-//            String linea;
-//            while ((linea = bufferedReader.readLine()) != null) {
-//                String[] campos = linea.split("\\|");
-//                UsuarioDireccion usuarioDireccion = new UsuarioDireccion();
-//                usuarioDireccion.Usuario = new Usuario();
-//                usuarioDireccion.Usuario.setUserName(campos[0]);
-//                usuarioDireccion.Usuario.setNombre(campos[1]);
-//                usuarioDireccion.Usuario.setApellidoPaterno(campos[2]);
-//                usuarioDireccion.Usuario.setApellidoMaterno(campos[3]);
-//                usuarioDireccion.Usuario.setEmail(campos[4]);
-//                usuarioDireccion.Usuario.setPassword(campos[5]);
-//                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd"); //Dar el formato a la fecha
-//                usuarioDireccion.Usuario.setFechaNacimiento(formatter.parse(campos[6]));
-//                usuarioDireccion.Usuario.setSexo(campos[7].charAt(0));
-//                usuarioDireccion.Usuario.setTelefono(campos[8]);
-//                usuarioDireccion.Usuario.setCelular(campos[9]);
-//                usuarioDireccion.Usuario.setCURP(campos[10]);
-//
-//                usuarioDireccion.Usuario.Rol = new Rol();
-//                usuarioDireccion.Usuario.Rol.setIdRol(Integer.parseInt(campos[11]));
-//                usuarioDireccion.Usuario.setImagen(null);
-//                usuarioDireccion.Usuario.setStatus(Integer.parseInt(campos[12]));
-//
-//                usuarioDireccion.Direccion = new Direccion();
-//                usuarioDireccion.Direccion.setCalle(campos[13]);
-//                usuarioDireccion.Direccion.setNumeroInterior(campos[14]);
-//                usuarioDireccion.Direccion.setNumeroExterior(campos[15]);
-//
-//                usuarioDireccion.Direccion.Colonia = new Colonia();
-//                usuarioDireccion.Direccion.Colonia.setIdColonia(Integer.parseInt(campos[16]));
-//
-//                listaUsuarios.add(usuarioDireccion);
-//
-//            }
-//        } catch (Exception ex) {
-//            listaUsuarios = null;
-//        }
-//        return listaUsuarios;
-//    }
-//    
-//    public List<UsuarioDireccion> LecturaArchivoExcel(File archivo){
-//        List<UsuarioDireccion> listaUsuarios = new ArrayList<>();
-//        try(XSSFWorkbook woorkBook = new XSSFWorkbook(archivo)){
-//            for (Sheet sheet : woorkBook) {
-//                for (Row row : sheet) {
-//                    UsuarioDireccion usuarioDireccion = new UsuarioDireccion();
-//                    usuarioDireccion.Usuario = new Usuario();
-//                    
-//                    usuarioDireccion.Usuario.setUserName(row.getCell(0).toString());
-//                    usuarioDireccion.Usuario.setNombre(row.getCell(1).toString());
-//                    usuarioDireccion.Usuario.setApellidoPaterno(row.getCell(2).toString());
-//                    usuarioDireccion.Usuario.setApellidoMaterno(row.getCell(3) != null ? row.getCell(3).toString() : "X");
-//                    usuarioDireccion.Usuario.setEmail(row.getCell(4).toString());
-//                    usuarioDireccion.Usuario.setPassword(row.getCell(5).toString());
-//                    usuarioDireccion.Usuario.setFechaNacimiento(row.getCell(6).getDateCellValue());
-//                    usuarioDireccion.Usuario.setSexo(row.getCell(7).toString().charAt(0));
-//                    DataFormatter dataFormatter = new DataFormatter();
-//                    usuarioDireccion.Usuario.setTelefono(dataFormatter.formatCellValue( row.getCell(8)));
-//                    usuarioDireccion.Usuario.setCelular( dataFormatter.formatCellValue(row.getCell(9)));
-//                    usuarioDireccion.Usuario.setCURP(row.getCell(10) != null ? (row.getCell(10).getStringCellValue()) : null);
-//                    usuarioDireccion.Usuario.Rol = new Rol();
-//                    usuarioDireccion.Usuario.Rol.setIdRol(row.getCell(11) != null ? ((int) row.getCell(11).getNumericCellValue()) : 3);
-//                    usuarioDireccion.Usuario.setImagen(null);
-//                    usuarioDireccion.Usuario.setStatus(row.getCell(12) != null ? ((int) row.getCell(12).getNumericCellValue()) : 1);
-//                    
-//                    usuarioDireccion.Direccion = new Direccion();
-//                    usuarioDireccion.Direccion.setCalle(row.getCell(13).getStringCellValue());
-//                    usuarioDireccion.Direccion.setNumeroInterior(dataFormatter.formatCellValue(row.getCell(14)));
-//                    usuarioDireccion.Direccion.setNumeroExterior(dataFormatter.formatCellValue(row.getCell(15)));
-//                    
-//                    usuarioDireccion.Direccion.Colonia = new Colonia();
-//                    usuarioDireccion.Direccion.Colonia.setIdColonia(row.getCell(16) != null ? (int) row.getCell(16).getNumericCellValue() : 0);
-//                    
-//                    listaUsuarios.add(usuarioDireccion);
-//                }
-//            }
-//        }catch(Exception ex){
-//            
-//        }
-//        return listaUsuarios;
-//    }
-//    public List<ResultFile> ValidarArchivo(List<UsuarioDireccion> listaUsuarios) {
-//        List<ResultFile> listaErrores = new ArrayList<>();
-//
-//        if (listaUsuarios == null) {
-//            listaErrores.add(new ResultFile(0, "La lista es nula", "La lista es nula"));
-//        } else if (listaUsuarios.isEmpty()) {
-//            listaErrores.add(new ResultFile(0, "La lista esta vacia", "La lista esta vacia"));
-//        } else {
-//            int fila = 1;
-//            for (UsuarioDireccion usuarioDireccion : listaUsuarios) {
-//
-//                if (usuarioDireccion.Usuario.getUserName() == null || usuarioDireccion.Usuario.getUserName().equals("")) {
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getUserName(), "El UserName es obligatorio"));
-//                }
-//
-//                if (usuarioDireccion.Usuario.getNombre() == null || usuarioDireccion.Usuario.getNombre().equals("")) {
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getNombre(), "El Nombre es Obligatorio"));
-//                }
-//
-//                if (usuarioDireccion.Usuario.getApellidoPaterno() == null || usuarioDireccion.Usuario.getApellidoPaterno().equals("")) {
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getApellidoPaterno(), "El Apellido Paterno es Obligatorio"));
-//                }
-//                
-//                if (usuarioDireccion.Usuario.getEmail() == null || usuarioDireccion.Usuario.getEmail().equals("")){
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getEmail(), "El Email es obligatorio"));
-//                }
-//                
-//                if (usuarioDireccion.Usuario.getPassword() == null || usuarioDireccion.Usuario.getPassword().equals("")){
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getPassword(), "La contrsaeña es obligatoria"));
-//                }
-//                
-//                if (usuarioDireccion.Usuario.getFechaNacimiento() == null || usuarioDireccion.Usuario.getFechaNacimiento().equals("")){
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getFechaNacimiento().toString(), "La fecha es obligatoria"));
-//                }
-//                
-//                if (String.valueOf(usuarioDireccion.Usuario.getSexo()) == null || String.valueOf(usuarioDireccion.Usuario.getSexo()).equals("")){
-//                    listaErrores.add(new ResultFile(fila, String.valueOf(usuarioDireccion.Usuario.getSexo()), "No se le asignado el sexo, el campo es obligatorio"));
-//                }
-//                
-//                if (usuarioDireccion.Usuario.getTelefono() == null || usuarioDireccion.Usuario.getTelefono().equals("")) {
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Usuario.getTelefono(), "Telefono es oblogatorio"));
-//                }
-//                
-//                if (Integer.toString(usuarioDireccion.Usuario.Rol.getIdRol()) == null || usuarioDireccion.Usuario.Rol.getIdRol() == 0 || Integer.toString(usuarioDireccion.Usuario.Rol.getIdRol()).equals("")){
-//                    listaErrores.add(new ResultFile(fila, Integer.toString(usuarioDireccion.Usuario.Rol.getIdRol()), "El rol es obligatorio"));
-//                }
-//                
-//                if (Integer.toString(usuarioDireccion.Usuario.getStatus()) == null || Integer.toString(usuarioDireccion.Usuario.getStatus()).equals("")){
-//                    listaErrores.add(new ResultFile(fila, Integer.toString(usuarioDireccion.Usuario.getStatus()), "El Status es obligatorio"));
-//                }
-//                
-//                if (usuarioDireccion.Direccion.getCalle() == null || usuarioDireccion.Direccion.getCalle().equals("")){
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Direccion.getCalle(), "La calle es un campo obligatorio"));
-//                }
-//                
-//                if (usuarioDireccion.Direccion.getNumeroExterior() == null || usuarioDireccion.Direccion.getNumeroExterior().equals("")){
-//                    listaErrores.add(new ResultFile(fila, usuarioDireccion.Direccion.getNumeroExterior(), "El numero exterior es obligatorio"));
-//                }
-//                
-//                if (Integer.toString(usuarioDireccion.Direccion.Colonia.getIdColonia()) == null || Integer.toString(usuarioDireccion.Direccion.Colonia.getIdColonia()).equals("")){
-//                    listaErrores.add(new ResultFile(fila, Integer.toString(usuarioDireccion.Direccion.Colonia.getIdColonia()), "La colonia es obligatoria"));
-//                }
-//                fila++;
-//            }
-//        }
-//        return listaErrores;
 //    }
 }
