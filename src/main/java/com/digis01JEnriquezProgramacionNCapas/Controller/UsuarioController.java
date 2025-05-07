@@ -32,6 +32,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -418,7 +419,7 @@ public class UsuarioController {
                             new HttpEntity<>(usuarioDireccion.Usuario),
                             new ParameterizedTypeReference<Result>() {
                     });
-                    
+
                     Result result = responseEntityUpdateUsuario.getBody();
                 } catch (HttpStatusCodeException ex) {
                     model.addAttribute("statusCode", ex.getStatusCode());
@@ -445,26 +446,29 @@ public class UsuarioController {
 
         try {
             if (archivo != null && !archivo.isEmpty()) {
-                ByteArrayResource byteArrayResource = new ByteArrayResource(archivo.getBytes());
+                //ByteArrayResource byteArrayResource = new ByteArrayResource(archivo.getBytes());
+                
+                Resource invoicesResource = archivo.getResource();
+                
                 MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-                body.add("archivo", byteArrayResource);
+                body.add("archivo", invoicesResource);
 
                 HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
 
                 HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity(body, httpHeaders);
 
-                ResponseEntity<ResultFile> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva",
+                ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva",
                         HttpMethod.POST,
                         httpEntity,
-                        new ParameterizedTypeReference<ResultFile>() {
+                        new ParameterizedTypeReference<Result>() {
                 });
 
-                ResultFile resultFile = responseEntity.getBody();
+                Result result = responseEntity.getBody();
 
                 if (responseEntity.getStatusCode().value() == 200) {
-                    session.setAttribute("urlFile", resultFile.getArchivo());
-                    model.addAttribute("listaErrores", resultFile.listaErrores);
+                    session.setAttribute("urlFile", result.object);
+                    //model.addAttribute("listaErrores", resultFile.listaErrores);
                     model.addAttribute("success", true);
                 }
             }
