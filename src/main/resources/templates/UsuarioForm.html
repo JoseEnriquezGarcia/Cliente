@@ -12,7 +12,7 @@
             <div class="col-8">
                 <div class="p-5" style="background-color: #272838; border-radius: 10px;">
                     <h1 class="text-center">Registro</h1>
-                    <form th:action="@{/usuario/Form}" method="POST" th:object="${usuarioDireccion}" enctype="multipart/form-data">
+                    <form th:action="@{/usuario/Form}" method="post" th:object="${usuarioDireccion}" enctype="multipart/form-data">
                         <input type="hidden" th:field="*{Usuario.IdUsuario}">
                         <input type="hidden" th:field="*{Direccion.IdDireccion}">
 
@@ -33,7 +33,7 @@
                             </div>
                             <div class="row mb-3 g-2">
                                 <div class="form-floating col">
-                                    <input type="text" class="form-control" id="UserName" placeholder="Username" th:field="*{Usuario.UserName}" required>
+                                    <input type="text" class="form-control" id="UserName" placeholder="Username" th:field="*{Usuario.UserName}">
                                     <label for="UserName" class="form-label">Username</label>
                                     <span id="EmailError" class="text-danger" th:if="${#fields.hasErrors('Usuario.UserName')}" th:errors="*{Usuario.UserName}"></span>
                                 </div>
@@ -44,7 +44,7 @@
                                     <span id="EmailError" class="text-danger"></span>
                                 </div>
                                 <div class="form-floating col">
-                                    <input type="password" class="form-control" id="Password" placeholder="Password" th:field="*{Usuario.Password}" onblur="return passwordValidation(this)" required>
+                                    <input type="password" class="form-control" id="Password" placeholder="Password" th:field="*{Usuario.Password}" onblur="return passwordValidation(this)">
                                     <label for="Password" class="form-label">Password</label>
                                     <span th:if="${#fields.hasErrors('Usuario.Password')}" th:errors="*{Usuario.Password}"></span>
                                     <span id="PasswordError" class="text-danger"></span>
@@ -52,13 +52,13 @@
                             </div>
                             <div class="row mb-3 g-2">
                                 <div class="form-floating col">
-                                    <input type="text" class="form-control" id="Nombre" placeholder="Nombre"  th:field="*{Usuario.Nombre}" required onkeypress="return onlyWords(event, this)">
+                                    <input type="text" class="form-control" id="Nombre" placeholder="Nombre"  th:field="*{Usuario.Nombre}" onkeypress="return onlyWords(event, this)">
                                     <label for="Nombre" class="form-label">Nombre</label>
                                     <span th:if="${#fields.hasErrors('Usuario.Nombre')}" th:errors="*{Usuario.Nombre}"></span>
                                     <span id="NombreError" class="text-danger"></span>
                                 </div>
                                 <div class="form-floating col">
-                                    <input type="text" class="form-control" id="ApellidoPaterno" placeholder="Apellido Paterno" th:field="*{Usuario.ApellidoPaterno}" required onkeypress="return onlyWords(event, this)">
+                                    <input type="text" class="form-control" id="ApellidoPaterno" placeholder="Apellido Paterno" th:field="*{Usuario.ApellidoPaterno}" onkeypress="return onlyWords(event, this)">
                                     <label for="ApellidoPaterno" class="form-label">Apellido Paterno</label>
                                     <span th:if="${#fields.hasErrors('Usuario.ApellidoPaterno')}" th:errors="*{Usuario.ApellidoPaterno}"></span>
                                     <span id="ApellidoPaternoError" class="text-danger"></span>
@@ -72,7 +72,7 @@
                             </div>
                             <div class="row mb-2 g-2">
                                 <div class="form-floating col">
-                                    <input type="date" class="form-control" id="FechaNacimiento" placeholder="Fecha Nacimiento" max="2025-12-31" th:field="*{Usuario.FechaNacimiento}" required>
+                                    <input type="date" class="form-control" id="FechaNacimiento" placeholder="Fecha Nacimiento" max="2025-12-31" th:field="*{Usuario.FechaNacimiento}">
                                     <label for="FechaNacimiento">Fecha De Nacimiento</label>
                                     <span th:if="${#fields.hasErrors('Usuario.FechaNacimiento')}" th:errors="*{Usuario.FechaNacimiento}"></span>
                                 </div>
@@ -100,7 +100,7 @@
                             </div>
                             <div class="row mb-1 g-2">
                                 <div class="form-floating col">
-                                    <input type="tel" class="form-control" id="Telefono" placeholder="Telefono" th:field="*{Usuario.Telefono}" required onblur="return phoneValidation(event, this)">
+                                    <input type="tel" class="form-control" id="Telefono" placeholder="Telefono" th:field="*{Usuario.Telefono}" onblur="return phoneValidation(event, this)">
                                     <label for="Telefono">Numero de telefono</label>
                                     <span id="TelefonoError" class="text-danger"></span>
                                     <span th:if="${#fields.hasErrors('Usuario.Telefono')}" th:errors="*{Usuario.Telefono}"></span>
@@ -166,7 +166,7 @@
                             </div>
                             <div class="row mb-3 g-2">
                                 <div class="form-floating col">
-                                    <input type="text" class="form-control" id="Calle" placeholder="Calle" th:field="*{Direccion.Calle}" required>
+                                    <input type="text" class="form-control" id="Calle" placeholder="Calle" th:field="*{Direccion.Calle}">
                                     <label for="Direccion">Calle</label>
                                     <span th:if="${#fields.hasErrors('Direccion.Calle')}" th:errors="*{Direccion.Calle}"></span>
                                 </div>
@@ -176,7 +176,7 @@
                                     <span th:if="${#fields.hasErrors('Direccion.NumeroInterior')}" th:errors="*{Direccion.NumeroInterior}"></span>
                                 </div>
                                 <div class="form-floating col">
-                                    <input type="text" class="form-control" id="NumeroExterior" placeholder="Num.Ext" th:field="*{Direccion.NumeroExterior}" required>
+                                    <input type="text" class="form-control" id="NumeroExterior" placeholder="Num.Ext" th:field="*{Direccion.NumeroExterior}">
                                     <label for="Direccion">Num.Ext</label>
                                     <span th:if="${#fields.hasErrors('Direccion.NumeroExterior')}" th:errors="*{Direccion.NumeroExterior}"></span>
                                 </div>

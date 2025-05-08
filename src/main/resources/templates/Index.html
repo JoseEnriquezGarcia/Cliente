@@ -73,7 +73,7 @@
                             <td scope="row"><ul th:each="direccion : ${usuarioDirecciones.Direcciones}" th:utext="|${direccion.Calle ?: 'No hay datos por mostrar'} ${direccion.NumeroExterior ?: 'No hay datos por mostrar'} ${direccion.NumeroInterior ?: 'No hay datos por mostrar'} ${direccion.Colonia.Nombre ?: 'No hay datos por mostrar'}|?: 'Sin datos'"></ul></td>
                             <td><div class="form-check form-switch"><input th:data-id="${usuarioDirecciones.Usuario.IdUsuario}" class="form-check-input" th:value="${usuarioDirecciones.Usuario.Status}" type="checkbox" role="switch" th:checked="${usuarioDirecciones.Usuario.Status == 1}" onchange="UpdateStatus(this)"></div></td>
                             <td scope="row"><div class="d-grid gap-2"><a class="btn btn-secondary" th:href="@{/usuario/Form/{IdUsuario}(IdUsuario = ${usuarioDirecciones.Usuario.IdUsuario})}"><i class="bi bi-pencil"></i></a></div></td>
-                            <td scope="row"><div class="d-grid gap-2"><a class="btn btn-danger" th:href="@{/usuario/DeleteUsuario(IdUsuario = ${usuarioDirecciones.Usuario.IdUsuario})}"><i class="bi bi-trash3"></i></a></div></td>
+                            <td scope="row"><div class="d-grid gap-2"><a class="btn btn-danger" th:data-id="${usuarioDirecciones.Usuario.IdUsuario}" onclick="Eliminar(this)"><i class="bi bi-trash3"></i></a></div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -109,13 +109,50 @@
 
             $("#StatusInactivo").on('change', function () {
                 let isChecked = $("#StatusInactivo").is(":checked");
-                
+
                 if (isChecked == true) {
                     $("#StatusActivo").prop('disabled', true);
-                }else{
+                } else {
                     $("#StatusActivo").prop('disabled', false);
                 }
             });
+
+            //Con Fetch
+            async function Eliminar(element) {
+                let data = element.getAttribute('data-id');
+                let url = "http://localhost:8081/usuario/delete/" + data;
+                const dataRequest = {
+                    method: 'DELETE'
+                };
+
+                let response = await fetch(url, dataRequest);
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    //Imprime la respuesta sin dar el formato
+                    console.log(response);
+                    //Convierte la respuesta a formato JSON
+                    let result = await response.json();
+                    console.log(result);
+                }
+            }
+
+//            function Eliminar(element) {
+//                let data = $(element).data("id");    
+//                $.ajax({
+//                    type:"DELETE",
+//                    url: "http://localhost:8081/usuario/delete/" + data,
+//                    success: function (textStatus) {
+//                        console.log(textStatus);
+//                        location.href = "http://localhost:8080/usuario";
+//                    },
+//                    error: function (request){
+//                       rsponse.set
+//                    }
+//                });
+//            }
+
 
             function UpdateStatus(element) {
                 let isChecked = $(element).is(":checked");

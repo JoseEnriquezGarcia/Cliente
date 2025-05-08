@@ -7,31 +7,15 @@ import com.digis01JEnriquezProgramacionNCapas.ML.Municipio;
 
 import com.digis01JEnriquezProgramacionNCapas.ML.Pais;
 import com.digis01JEnriquezProgramacionNCapas.ML.Result;
-import com.digis01JEnriquezProgramacionNCapas.ML.ResultFile;
-import com.digis01JEnriquezProgramacionNCapas.ML.ResultWeb;
 import com.digis01JEnriquezProgramacionNCapas.ML.Rol;
 import com.digis01JEnriquezProgramacionNCapas.ML.Usuario;
 import com.digis01JEnriquezProgramacionNCapas.ML.UsuarioDireccion;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -49,7 +33,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,7 +46,8 @@ public class UsuarioController {
 
     @GetMapping
     public String Index(Model model) {
-
+        Rutas rutas = new Rutas();
+        
         try {
             ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario",
                     HttpMethod.GET,
@@ -350,26 +334,26 @@ public class UsuarioController {
         }
     }
 
-    @GetMapping("/DeleteUsuario")
-    public String DeleteUsuario(@RequestParam int IdUsuario, Model model) {
-        try {
-            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/delete/{IdUsuario}",
-                    HttpMethod.DELETE,
-                    HttpEntity.EMPTY,
-                    new ParameterizedTypeReference<Result>() {
-            },
-                    IdUsuario);
-
-            Result result = responseEntity.getBody();
-
-        } catch (HttpStatusCodeException ex) {
-            model.addAttribute("statusCode", ex.getStatusCode());
-            model.addAttribute("descripcionError", ex);
-            return "Error";
-        }
-
-        return "redirect:/usuario";
-    }
+//    @GetMapping("/DeleteUsuario")
+//    public String DeleteUsuario(@RequestParam int IdUsuario, Model model) {
+//        try {
+//            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/delete/{IdUsuario}",
+//                    HttpMethod.DELETE,
+//                    HttpEntity.EMPTY,
+//                    new ParameterizedTypeReference<Result>() {
+//            },
+//                    IdUsuario);
+//
+//            Result result = responseEntity.getBody();
+//
+//        } catch (HttpStatusCodeException ex) {
+//            model.addAttribute("statusCode", ex.getStatusCode());
+//            model.addAttribute("descripcionError", ex);
+//            return "Error";
+//        }
+//
+//        return "redirect:/usuario";
+//    }
 
     @PostMapping("Form")
     public String Form(@Valid @ModelAttribute UsuarioDireccion usuarioDireccion, BindingResult BindingResult, @RequestParam(required = false) MultipartFile imagenFile, Model model) {
@@ -378,20 +362,21 @@ public class UsuarioController {
 //            
 //            return "UsuarioForm";
 //        }
-        usuarioDireccion.Usuario.setStatus(1);
+
+        //Convertir Imagen a base64
         try {
             if (!imagenFile.isEmpty()) {
                 byte[] bytes = imagenFile.getBytes();
                 String imgBase64 = Base64.getEncoder().encodeToString(bytes);
                 usuarioDireccion.Usuario.setImagen(imgBase64);
-
             }
         } catch (Exception ex) {
-
+            model.addAttribute("descripcionError", ex);
+            return "Error";
         }
+
         if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() == 0) {
             //Agregar una direccion
-
             ResponseEntity<Result> responseEntityDireccionAdd = restTemplate.exchange(baseUrl + "direccion/add",
                     HttpMethod.POST,
                     new HttpEntity<>(usuarioDireccion),
@@ -407,13 +392,24 @@ public class UsuarioController {
         } else {
             if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() > 0) {
                 //Editar Direccion
-                //direccionDAOImplementation.DireccionUpdate(usuarioDireccion.Direccion);
-//                direccionDAOImplementation.DireccionUpdateJPA(usuarioDireccion.Direccion);
+                try {
+                    ResponseEntity<Result> responseEntityAddDireccion = restTemplate.exchange(baseUrl + "direccion/update",
+                            HttpMethod.PUT,
+                            new HttpEntity<>(usuarioDireccion.Direccion),
+                            new ParameterizedTypeReference<Result>() {
+                    });
+
+                    Result result = responseEntityAddDireccion.getBody();
+
+                } catch (HttpStatusCodeException ex) {
+                    model.addAttribute("statusCode", ex.getStatusCode());
+                    model.addAttribute("descripcionError", ex);
+                    return "Error";
+                }
+
             } else if (usuarioDireccion.Usuario.getIdUsuario() > 0 && usuarioDireccion.Direccion.getIdDireccion() == -1) {
                 //Editar usuario
-                //usuarioDAOImplementation.UsuarioUpdate(usuarioDireccion.Usuario);
                 try {
-
                     ResponseEntity<Result> responseEntityUpdateUsuario = restTemplate.exchange(baseUrl + "usuario/update",
                             HttpMethod.PUT,
                             new HttpEntity<>(usuarioDireccion.Usuario),
@@ -421,6 +417,7 @@ public class UsuarioController {
                     });
 
                     Result result = responseEntityUpdateUsuario.getBody();
+
                 } catch (HttpStatusCodeException ex) {
                     model.addAttribute("statusCode", ex.getStatusCode());
                     model.addAttribute("descripcionError", ex);
@@ -429,8 +426,20 @@ public class UsuarioController {
 
             } else {
                 //Agregar Usuario y Direccion
-                //usuarioDAOImplementation.Add(usuarioDireccion);
-//                usuarioDAOImplementation.AddJPA(usuarioDireccion);
+                try {
+                    ResponseEntity<Result> responseEntityAddUsuario = restTemplate.exchange(baseUrl + "usuario/add",
+                            HttpMethod.POST,
+                            new HttpEntity<>(usuarioDireccion),
+                            new ParameterizedTypeReference<Result>() {
+                    });
+
+                    Result result = responseEntityAddUsuario.getBody();
+                    
+                } catch (HttpStatusCodeException ex) {
+                    model.addAttribute("statusCode", ex.getStatusCode());
+                    model.addAttribute("descripcionError", ex);
+                    return "Error";
+                }
             }
         }
         return ("redirect:/usuario");
@@ -446,30 +455,37 @@ public class UsuarioController {
 
         try {
             if (archivo != null && !archivo.isEmpty()) {
-                //ByteArrayResource byteArrayResource = new ByteArrayResource(archivo.getBytes());
-                
-                Resource invoicesResource = archivo.getResource();
-                
+
+//                Esta es otra Forma obteniendo el nombre original del archivo
+//                ByteArrayResource byteArrayResource = new ByteArrayResource(archivo.getBytes()) {
+//                    @Override
+//                    public String getFilename() {
+//                        return archivo.getOriginalFilename();
+//                    }
+//                };
+                //Se envia el archivo mediante un Resource
+                Resource archivoResource = archivo.getResource();
                 MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-                body.add("archivo", invoicesResource);
+                body.add("archivo", archivoResource);
 
                 HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
 
                 HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity(body, httpHeaders);
 
-                ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva",
+                ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva",
                         HttpMethod.POST,
                         httpEntity,
-                        new ParameterizedTypeReference<Result>() {
+                        new ParameterizedTypeReference<Map<String, Object>>() {
                 });
 
-                Result result = responseEntity.getBody();
-
-                if (responseEntity.getStatusCode().value() == 200) {
-                    session.setAttribute("urlFile", result.object);
-                    //model.addAttribute("listaErrores", resultFile.listaErrores);
+                if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                    session.setAttribute("urlFile", responseEntity.getBody().get("object"));
                     model.addAttribute("success", true);
+                } else {
+                    if (responseEntity.getStatusCode().is4xxClientError()) {
+                        model.addAttribute("listaErrores", (String) responseEntity.getBody().get("objects"));
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -478,22 +494,25 @@ public class UsuarioController {
         return "CargaMasiva";
     }
 
-//    @GetMapping("/Procesar")
-//    public String Procesar(HttpSession session) {
-//        String absolutePath = session.getAttribute("urlFile").toString();
-//        String tipoArchivo = session.getAttribute("urlFile").toString().split("\\.")[1];
-//        List<UsuarioDireccion> listaUsuarios = new ArrayList<>();
-//
-//        if (tipoArchivo.equals("txt")) {
-//             listaUsuarios = LecturaArchivoTXT(new File(absolutePath));
-//        }else{
-//            listaUsuarios = LecturaArchivoExcel(new File(absolutePath));
-//        }        
-//        
-//        for (UsuarioDireccion usuarioDireccion : listaUsuarios) {
-//            //usuarioDAOImplementation.Add(usuarioDireccion);
-//            usuarioDAOImplementation.AddJPA(usuarioDireccion);
-//        }
-//        return "CargaMasiva";
-//    }
+    @GetMapping("/Procesar")
+    public String Procesar(HttpSession session, Model model) {
+        String absolutePath = session.getAttribute("urlFile").toString();
+        try {
+            ResponseEntity<Result> responseEntity = restTemplate.exchange(baseUrl + "usuario/cargaMasiva/procesar",
+                    HttpMethod.POST,
+                    new HttpEntity<>(absolutePath),
+                    new ParameterizedTypeReference<Result>() {
+            });
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                return "redirect:/usuario";
+            }
+
+        } catch (HttpStatusCodeException ex) {
+            model.addAttribute("statusCode", ex.getStatusCode());
+            model.addAttribute("descripcionError", ex);
+            return "Error";
+        }
+        return "CargaMasiva";
+    }
 }
