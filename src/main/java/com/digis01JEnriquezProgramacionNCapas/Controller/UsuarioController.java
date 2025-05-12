@@ -44,10 +44,40 @@ public class UsuarioController {
     private RestTemplate restTemplate = new RestTemplate();
     private String baseUrl = "http://localhost:8081/";
 
+    @GetMapping("/ordenamiento/{Bandera}")
+    public String Ordenamiento(@PathVariable int Bandera, Model model) {
+        
+        try{
+        ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario/orden",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
+        });
+
+        ResponseEntity<Result<Rol>> responseEntityRol = restTemplate.exchange(baseUrl + "rol/getAll",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Result<Rol>>() {
+        });
+        
+        Usuario usuarioBusqueda = new Usuario();
+        usuarioBusqueda.Rol = new Rol();
+
+        model.addAttribute("usuarioBusqueda", usuarioBusqueda);
+        model.addAttribute("listaUsuarios", responseEntity.getBody().objects);
+        model.addAttribute("listaRol", responseEntityRol.getBody().objects);
+        return "Index";
+        }catch(HttpStatusCodeException ex){
+            model.addAttribute("descripcionError", ex);
+            model.addAttribute("statusCode", ex.getStatusCode());
+            return "Error";
+        }
+    }
+
     @GetMapping
     public String Index(Model model) {
         Rutas rutas = new Rutas();
-        
+
         try {
             ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario",
                     HttpMethod.GET,
@@ -354,7 +384,6 @@ public class UsuarioController {
 //
 //        return "redirect:/usuario";
 //    }
-
     @PostMapping("Form")
     public String Form(@Valid @ModelAttribute UsuarioDireccion usuarioDireccion, BindingResult BindingResult, @RequestParam(required = false) MultipartFile imagenFile, Model model) {
 //        if(BindingResult.hasErrors()){
@@ -434,7 +463,7 @@ public class UsuarioController {
                     });
 
                     Result result = responseEntityAddUsuario.getBody();
-                    
+
                 } catch (HttpStatusCodeException ex) {
                     model.addAttribute("statusCode", ex.getStatusCode());
                     model.addAttribute("descripcionError", ex);
