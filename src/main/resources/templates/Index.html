@@ -46,18 +46,18 @@
                     </form>
                 </div>
             </div>
-
+            
             <div class="table-responsive-xl">
                 <br>
                 <table class="table table-dark table-bordered table-sm">
                     <thead>
                         <tr>
-                            <th class="col-1">Imagen</th>
-                            <th class = "col-2">Nombre</th>
-                            <th class = "col-1">Username</th>
-                            <th class = "col-2">Contacto</th>
-                            <th class = "col-1">Curp</th>
-                            <th class = "col-3">Direccion</th>
+                            <th class="col">Imagen</th>
+                            <th class = "col">Nombre <a class="btn" th:ref=""><i class="bi bi-arrow-down-up"></i></a></th>
+                            <th class = "col">Apellido Paterno<a class="btn" th:ref=""><i class="bi bi-arrow-down-up"></i></a></th>
+                            <th class = "col">Apellido Materno<a class="btn" th:ref=""><i class="bi bi-arrow-down-up"></i></a></th>
+                            <th class = "col">Rol <a class="btn" th:ref=""><i class="bi bi-arrow-down-up"></i></a></th>
+                            <th class = "col">Direccion</th>
                             <th class="col">Status</th>
                             <th class = "col">Editar</th>
                             <th class = "col">Eliminar</th>
@@ -66,10 +66,10 @@
                     <tbody>
                         <tr th:each="usuarioDirecciones : ${listaUsuarios}">
                             <td><div class="card " style="width:80px; background-color: #626266"><img th:src="${usuarioDirecciones.Usuario.Imagen != null} ? 'data:image/png;base64,' + ${usuarioDirecciones.Usuario.Imagen} : 'https://i.postimg.cc/7YH05GSc/Default-Image.png'" ></div></td>
-                            <td th:text="${usuarioDirecciones.Usuario.Nombre + ' ' + usuarioDirecciones.Usuario.ApellidoPaterno + ' ' + usuarioDirecciones.Usuario.ApellidoMaterno}" scope="row"></td>
-                            <td th:text="${usuarioDirecciones.Usuario.UserName}" scope="row"></td>
-                            <td th:text="${'Telefono' +': ' + usuarioDirecciones.Usuario.Telefono + ' ' + 'Celular' +': '+ usuarioDirecciones.Usuario.Celular}" scope="row"></td>
-                            <td th:text="${usuarioDirecciones.Usuario.CURP}"></td>
+                            <td th:text="${usuarioDirecciones.Usuario.Nombre}" scope="row"></td>
+                            <td th:text="${usuarioDirecciones.Usuario.ApellidoPaterno}" scope="row"></td>
+                            <td th:text="${usuarioDirecciones.Usuario.ApellidoMaterno}" scope="row"></td>
+                            <td th:text="${usuarioDirecciones.Usuario.Rol.Nombre}"></td>
                             <td scope="row"><ul th:each="direccion : ${usuarioDirecciones.Direcciones}" th:utext="|${direccion.Calle ?: 'No hay datos por mostrar'} ${direccion.NumeroExterior ?: 'No hay datos por mostrar'} ${direccion.NumeroInterior ?: 'No hay datos por mostrar'} ${direccion.Colonia.Nombre ?: 'No hay datos por mostrar'}|?: 'Sin datos'"></ul></td>
                             <td><div class="form-check form-switch"><input th:data-id="${usuarioDirecciones.Usuario.IdUsuario}" class="form-check-input" th:value="${usuarioDirecciones.Usuario.Status}" type="checkbox" role="switch" th:checked="${usuarioDirecciones.Usuario.Status == 1}" onchange="UpdateStatus(this)"></div></td>
                             <td scope="row"><div class="d-grid gap-2"><a class="btn btn-secondary" th:href="@{/usuario/Form/{IdUsuario}(IdUsuario = ${usuarioDirecciones.Usuario.IdUsuario})}"><i class="bi bi-pencil"></i></a></div></td>

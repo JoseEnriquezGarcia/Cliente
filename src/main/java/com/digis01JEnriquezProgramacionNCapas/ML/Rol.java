@@ -5,14 +5,14 @@ import jakarta.validation.constraints.NotNull;
 public class Rol {
     
     @NotNull(message = "No debe ser Nulo")
-    private int IdRol;
+    private Integer IdRol;
     private String Nombre;
     
-    public int getIdRol(){
+    public Integer getIdRol(){
         return IdRol;
     }
     
-    public void setIdRol(int IdRol){
+    public void setIdRol(Integer IdRol){
         this.IdRol = IdRol;
     }
     
