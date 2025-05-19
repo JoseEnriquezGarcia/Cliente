@@ -44,11 +44,11 @@ public class UsuarioController {
     private RestTemplate restTemplate = new RestTemplate();
     private String baseUrl = "http://localhost:8081/";
 
-    @GetMapping("/ordenamiento/{Bandera}")
-    public String Ordenamiento(@PathVariable int Bandera, Model model) {
+    @GetMapping("/ordenamiento/{bandera}")
+    public String Ordenamiento(@PathVariable int bandera, Model model) {
         
         try{
-        ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario/orden",
+        ResponseEntity<Result<UsuarioDireccion>> responseEntity = restTemplate.exchange(baseUrl + "usuario/orden" + bandera,
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<Result<UsuarioDireccion>>() {
